@@ -19,6 +19,7 @@ import pathlib
 import shutil
 import stat
 import subprocess
+import sys
 
 # If changed, also update the module docstring.
 DEFAULT_CREDENTIALS_PATH = pathlib.Path("wasi-buildbot.env")
@@ -35,11 +36,11 @@ def main() -> None:
 
     # Validate credentials file exists and has secure permissions.
     if not args.credentials.exists():
-        raise SystemExit(f"Error: credentials file not found: {args.credentials}")
+        sys.exit(f"Error: credentials file not found: {args.credentials}")
     mode = args.credentials.stat().st_mode
     if mode & (stat.S_IRWXG | stat.S_IRWXO):
-        raise SystemExit(
-            f"Error: credentials file {args.credentials} must not be readable/writable by group or others"
+        sys.exit(
+            f"Error: credentials file {args.credentials} must NOT be readable/writable by group or others"
         )
 
     # Clean up any existing buildarea directory.
@@ -49,7 +50,7 @@ def main() -> None:
 
     # Find podman executable.
     if (podman := shutil.which("podman")) is None:
-        raise SystemExit("Error: podman not found in PATH")
+        sys.exit("Error: podman not found in PATH")
 
     # Remove any existing image to avoid cached layers.
     subprocess.run([podman, "rmi", "-f", "wasi-buildbot"], capture_output=True)
