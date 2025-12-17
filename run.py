@@ -8,8 +8,8 @@ The credentials file should be in KEY=VALUE format:
 
 Create it with:
 
-    touch credentials.env
-    chmod 600 credentials.env
+    touch wasi-buildbot.env
+    chmod 600 wasi-buildbot.env
     # Then edit to add your credentials.
 """
 
@@ -20,14 +20,16 @@ import shutil
 import stat
 import subprocess
 
+# If changed, also update the module docstring.
+DEFAULT_CREDENTIALS_PATH = pathlib.Path("wasi-buildbot.env")
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the WASI buildbot container")
     parser.add_argument(
         "credentials",
         type=pathlib.Path,
-        default=pathlib.Path("credentials.env"),
-        help="Path to credentials file (default: credentials.env)",
+        default=DEFAULT_CREDENTIALS_PATH,
+        help=f"Path to credentials file (default: {os.fsdecode(DEFAULT_CREDENTIALS_PATH)})",
     )
     args = parser.parse_args()
 
