@@ -24,6 +24,7 @@ import sys
 # If changed, also update the module docstring.
 DEFAULT_CREDENTIALS_PATH = pathlib.Path("wasi-buildbot.env")
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the WASI buildbot container")
     parser.add_argument(
