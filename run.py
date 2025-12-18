@@ -29,6 +29,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the WASI buildbot container")
     parser.add_argument(
         "credentials",
+        nargs="?",
         type=pathlib.Path,
         default=DEFAULT_CREDENTIALS_PATH,
         help=f"Path to credentials file (default: {os.fsdecode(DEFAULT_CREDENTIALS_PATH)})",
