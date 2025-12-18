@@ -20,7 +20,7 @@ if [ ! -w /buildarea ]; then
 fi
 
 # Check that /buildarea is coming from outside the container (mounted as a volume)
-if ! grep -q " /buildarea " /proc/mounts; then
+if ! grep -q '^[^ ]* /buildarea ' /proc/mounts; then
     echo "Error: /buildarea must be mounted as a volume from outside the container" >&2
     exit 1
 fi
