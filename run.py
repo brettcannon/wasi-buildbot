@@ -45,8 +45,12 @@ def main() -> None:
             f"Error: credentials file {args.credentials} must NOT be readable/writable by group or others"
         )
 
-    # Clean up any existing buildarea directory.
-    if (buildarea := pathlib.Path.cwd() / "buildarea").exists():
+    script_dir = pathlib.Path(__file__).resolve().parent
+
+    # Clean up any existing buildarea directory in the script directory so the
+    # volume mount points at the expected location regardless of where the
+    # command is launched from.
+    if (buildarea := script_dir / "buildarea").exists():
         shutil.rmtree(buildarea)
     buildarea.mkdir()
 
@@ -58,7 +62,6 @@ def main() -> None:
     subprocess.run([podman, "rmi", "-f", "wasi-buildbot"], capture_output=True)
 
     # Build the container, pulling the latest base image.
-    script_dir = pathlib.Path(__file__).resolve().parent
     subprocess.run(
         [
             podman,
