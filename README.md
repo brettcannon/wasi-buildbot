@@ -40,14 +40,14 @@ Or with a custom credentials file path:
 Build the container:
 
 ```bash
-podman build -t wasi-buildbot .
+docker build -t wasi-buildbot .
 ```
 
 Run the container:
 
 ```bash
-podman run --rm -it \
-    -v /path/to/buildarea:/buildarea:Z \
+docker run --rm -it \
+    -v /path/to/buildarea:/buildarea \
     --env-file credentials.env \
     wasi-buildbot
 ```
@@ -55,8 +55,8 @@ podman run --rm -it \
 Or with explicit environment variables:
 
 ```bash
-podman run --rm -it \
-    -v /path/to/buildarea:/buildarea:Z \
+docker run --rm -it \
+    -v /path/to/buildarea:/buildarea \
     -e BUILDBOT_USERNAME=xxx \
     -e BUILDBOT_PASSWORD=xxx \
     wasi-buildbot

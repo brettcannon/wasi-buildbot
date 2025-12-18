@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the WASI buildbot container with podman.
+"""Run the WASI buildbot container with docker.
 
 The credentials file should be in KEY=VALUE format:
 
@@ -54,19 +54,19 @@ def main() -> None:
         shutil.rmtree(buildarea)
     buildarea.mkdir()
 
-    # Find podman executable.
-    if (podman := shutil.which("podman")) is None:
-        sys.exit("Error: podman not found in PATH")
+    # Find docker executable.
+    if (docker := shutil.which("docker")) is None:
+        sys.exit("Error: docker not found in PATH")
 
     # Remove any existing image to avoid cached layers.
-    subprocess.run([podman, "rmi", "-f", "wasi-buildbot"], capture_output=True)
+    subprocess.run([docker, "rmi", "-f", "wasi-buildbot"], capture_output=True)
 
     # Build the container, pulling the latest base image.
     subprocess.run(
         [
-            podman,
+            docker,
             "build",
-            "--pull=always",
+            "--pull",
             "--no-cache",
             "-t",
             "wasi-buildbot",
@@ -76,24 +76,23 @@ def main() -> None:
     )
 
     # Prune dangling images and old base images.
-    subprocess.run([podman, "image", "prune", "-f"], capture_output=True)
+    subprocess.run([docker, "image", "prune", "-f"], capture_output=True)
 
-    # Build the podman command.
+    # Build the docker command.
     cmd = [
-        podman,
+        docker,
         "run",
         "--rm",
         "-it",
-        "--userns=keep-id",
         "-v",
-        f"{buildarea}:/buildarea:Z",
+        f"{buildarea}:/buildarea",
         "--env-file",
         os.fsdecode(args.credentials.resolve()),
         "wasi-buildbot",
     ]
 
-    # Replace this process with podman.
-    os.execv(podman, cmd)
+    # Replace this process with docker.
+    os.execv(docker, cmd)
 
 
 if __name__ == "__main__":
