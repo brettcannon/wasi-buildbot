@@ -28,11 +28,16 @@ DEFAULT_CREDENTIALS_PATH = pathlib.Path("wasi-buildbot.env")
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the WASI buildbot container")
     parser.add_argument(
-        "credentials",
-        nargs="?",
+        "--credentials",
         type=pathlib.Path,
         default=DEFAULT_CREDENTIALS_PATH,
         help=f"Path to credentials file (default: {os.fsdecode(DEFAULT_CREDENTIALS_PATH)})",
+    )
+    parser.add_argument(
+        "--buildarea-parent",
+        type=pathlib.Path,
+        default=pathlib.Path.cwd(),
+        help="Parent directory for buildarea/ (default: current working directory)",
     )
     args = parser.parse_args()
 
@@ -47,10 +52,11 @@ def main() -> None:
 
     script_dir = pathlib.Path(__file__).resolve().parent
 
-    # Clean up any existing buildarea directory in the script directory so the
+    # Clean up any existing buildarea directory in the buildarea parent directory so the
     # volume mount points at the expected location regardless of where the
     # command is launched from.
-    if (buildarea := script_dir / "buildarea").exists():
+    buildarea_parent = args.buildarea_parent.resolve()
+    if (buildarea := buildarea_parent / "buildarea").exists():
         shutil.rmtree(buildarea)
     buildarea.mkdir()
 

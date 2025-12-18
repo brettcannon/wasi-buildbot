@@ -29,10 +29,22 @@ The `run.py` script builds the container fresh (pulling the latest base image) a
 ./run.py
 ```
 
-Or with a custom credentials file path:
+With a custom credentials file path:
 
 ```bash
 ./run.py --credentials /path/to/credentials.env
+```
+
+With a custom parent directory for the buildarea:
+
+```bash
+./run.py --buildarea-parent /path/to/parent
+```
+
+Both options can be combined:
+
+```bash
+./run.py --credentials /path/to/credentials.env --buildarea-parent /path/to/parent
 ```
 
 ### Manual execution
