@@ -84,6 +84,7 @@ def main() -> None:
         "run",
         "--rm",
         "-it",
+        "--userns=keep-id",
         "-v",
         f"{buildarea}:/buildarea:Z",
         "--env-file",
