@@ -1,8 +1,27 @@
 #!/bin/sh
 set -e
 
-if [ ! -d /buildarea ] || [ "$(stat -c %d /buildarea)" = "$(stat -c %d /)" ]; then
-    echo "Error: /buildarea must be mounted as a volume" >&2
+# Check that /buildarea exists
+if [ ! -d /buildarea ]; then
+    echo "Error: /buildarea directory does not exist - it must be mounted as a volume" >&2
+    exit 1
+fi
+
+# Check that /buildarea is readable
+if [ ! -r /buildarea ]; then
+    echo "Error: /buildarea is not readable" >&2
+    exit 1
+fi
+
+# Check that /buildarea is writable
+if [ ! -w /buildarea ]; then
+    echo "Error: /buildarea is not writable" >&2
+    exit 1
+fi
+
+# Check that /buildarea is coming from outside the container (mounted as a volume)
+if ! awk '$2 == "/buildarea" {found=1} END {exit !found}' /proc/mounts; then
+    echo "Error: /buildarea must be mounted as a volume from outside the container" >&2
     exit 1
 fi
 
