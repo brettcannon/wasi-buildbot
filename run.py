@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the WASI buildbot container with docker.
+"""Run the WASI buildbot container with Podman or Docker.
 
 The credentials file should be in KEY=VALUE format:
 
@@ -39,6 +39,11 @@ def main() -> None:
         default=pathlib.Path.cwd(),
         help="Parent directory for buildarea/ (default: current working directory)",
     )
+    parser.add_argument(
+        "--container-runtime",
+        choices=["podman", "docker"],
+        help="Container runtime to use (default: auto-detect, preferring podman)",
+    )
     args = parser.parse_args()
 
     # Validate credentials file exists and has secure permissions.
@@ -60,17 +65,28 @@ def main() -> None:
         shutil.rmtree(buildarea)
     buildarea.mkdir()
 
-    # Find docker executable.
-    if (docker := shutil.which("docker")) is None:
-        sys.exit("Error: docker not found in PATH")
+    # Find container runtime executable.
+    if args.container_runtime:
+        runtime = shutil.which(args.container_runtime)
+        if runtime is None:
+            sys.exit(f"Error: {args.container_runtime} not found in PATH")
+        runtime_name = args.container_runtime
+    else:
+        # Auto-detect, preferring podman.
+        if (runtime := shutil.which("podman")) is not None:
+            runtime_name = "podman"
+        elif (runtime := shutil.which("docker")) is not None:
+            runtime_name = "docker"
+        else:
+            sys.exit("Error: neither podman nor docker found in PATH")
 
     # Remove any existing image to avoid cached layers.
-    subprocess.run([docker, "rmi", "-f", "wasi-buildbot"], capture_output=True)
+    subprocess.run([runtime, "rmi", "-f", "wasi-buildbot"], capture_output=True)
 
     # Build the container, pulling the latest base image.
     subprocess.run(
         [
-            docker,
+            runtime,
             "build",
             "--pull",
             "--no-cache",
@@ -82,23 +98,31 @@ def main() -> None:
     )
 
     # Prune dangling images and old base images.
-    subprocess.run([docker, "image", "prune", "-f"], capture_output=True)
+    subprocess.run([runtime, "image", "prune", "-f"], capture_output=True)
 
-    # Build the docker command.
+    # Build the container run command.
     cmd = [
-        docker,
+        runtime,
         "run",
         "--rm",
         "-it",
+    ]
+    
+    # When using Podman, add --userns=keep-id so files written to the mounted
+    # volume are owned by the host user rather than a mapped subuid.
+    if runtime_name == "podman":
+        cmd.append("--userns=keep-id")
+    
+    cmd.extend([
         "-v",
         f"{buildarea}:/buildarea",
         "--env-file",
         os.fsdecode(args.credentials.resolve()),
         "wasi-buildbot",
-    ]
+    ])
 
-    # Replace this process with docker.
-    os.execv(docker, cmd)
+    # Replace this process with the container runtime.
+    os.execv(runtime, cmd)
 
 
 if __name__ == "__main__":
