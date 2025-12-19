@@ -60,7 +60,8 @@ def main() -> None:
     if (buildarea := buildarea_parent / "buildarea").exists():
         shutil.rmtree(buildarea)
     # Create buildarea with world-readable and world-writable permissions (0o777)
-    buildarea.mkdir(mode=0o777)
+    buildarea.mkdir()
+    buildarea.chmod(0o777)
 
     # Find podman executable.
     if (runtime := shutil.which("podman")) is None:
