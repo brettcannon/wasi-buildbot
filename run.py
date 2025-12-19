@@ -63,8 +63,7 @@ def main() -> None:
     buildarea.mkdir(mode=0o777)
 
     # Find podman executable.
-    runtime = shutil.which("podman")
-    if runtime is None:
+    if (runtime := shutil.which("podman")) is None:
         sys.exit("Error: podman not found in PATH")
 
     # Remove any existing image to avoid cached layers.
