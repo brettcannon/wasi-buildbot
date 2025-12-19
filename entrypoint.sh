@@ -14,7 +14,7 @@ if [ ! -f buildbot.tac ]; then
         echo "Error: BUILDBOT_USERNAME and BUILDBOT_PASSWORD must be set" >&2
         exit 1
     fi
-    buildbot-worker create-worker . buildbot-api.python.org:9020 "${BUILDBOT_USERNAME}" "${BUILDBOT_PASSWORD}"
+    buildbot-worker create-worker --delete-leftover-dirs --keepalive=60 . buildbot-api.python.org:9020 "${BUILDBOT_USERNAME}" "${BUILDBOT_PASSWORD}"
     echo "https://github.com/brettcannon/wasi-buildbot" > info/admin
     echo "WASI builder based on https://github.com/python/cpython-devcontainers/pkgs/container/wasicontainer" > info/host
 fi
