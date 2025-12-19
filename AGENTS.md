@@ -1,4 +1,4 @@
-# Copilot Instructions for WASI Buildbot
+# Agent Instructions for WASI Buildbot
 
 ## Project Overview
 
@@ -28,8 +28,8 @@ Key files in this repository:
 ├── README.md           # User documentation
 ├── LICENSE             # Apache 2.0 license
 ├── .gitignore          # Git ignore patterns
+├── AGENTS.md           # This file - instructions for AI coding agents
 └── .github/
-    ├── copilot-instructions.md  # This file
     └── FUNDING.yml     # GitHub Sponsors configuration
 ```
 
