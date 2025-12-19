@@ -57,11 +57,10 @@ def main() -> None:
     # volume mount points at the expected location regardless of where the
     # command is launched from.
     buildarea_parent = args.buildarea_parent.resolve()
-    if (buildarea := buildarea_parent / "buildarea").exists():
-        shutil.rmtree(buildarea)
-    # Create buildarea with world-readable and world-writable permissions (0o777)
-    buildarea.mkdir()
-    buildarea.chmod(0o777)
+    if not (buildarea := buildarea_parent / "buildarea").exists():
+        # Create buildarea with world-readable and world-writable permissions (0o777).
+        buildarea.mkdir()
+        buildarea.chmod(0o777)
 
     # Find podman executable.
     if (runtime := shutil.which("podman")) is None:
