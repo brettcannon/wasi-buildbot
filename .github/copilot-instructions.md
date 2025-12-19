@@ -18,14 +18,19 @@ This repository contains the configuration and scripts for the WASI buildbot wor
 
 ## Repository Structure
 
+Key files in this repository:
+
 ```
 .
 ├── Dockerfile          # Container definition using WASI base image
 ├── entrypoint.sh       # Container entrypoint, initializes and runs buildbot-worker
 ├── run.py              # Helper script to build and run the container with Podman
 ├── README.md           # User documentation
+├── LICENSE             # Apache 2.0 license
+├── .gitignore          # Git ignore patterns
 └── .github/
-    └── copilot-instructions.md  # This file
+    ├── copilot-instructions.md  # This file
+    └── FUNDING.yml     # GitHub Sponsors configuration
 ```
 
 ## Setup and Testing
