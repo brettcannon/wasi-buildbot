@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the WASI buildbot container with podman.
+"""Run the WASI buildbot container with Podman.
 
 The credentials file should be in KEY=VALUE format:
 
@@ -28,12 +28,18 @@ DEFAULT_CREDENTIALS_PATH = pathlib.Path("wasi-buildbot.env")
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the WASI buildbot container")
     parser.add_argument(
-        "credentials",
-        nargs="?",
+        "--credentials",
         type=pathlib.Path,
         default=DEFAULT_CREDENTIALS_PATH,
         help=f"Path to credentials file (default: {os.fsdecode(DEFAULT_CREDENTIALS_PATH)})",
     )
+    parser.add_argument(
+        "--buildarea-parent",
+        type=pathlib.Path,
+        default=pathlib.Path.cwd(),
+        help="Parent directory for buildarea/ (default: current working directory)",
+    )
+
     args = parser.parse_args()
 
     # Validate credentials file exists and has secure permissions.
@@ -47,26 +53,28 @@ def main() -> None:
 
     script_dir = pathlib.Path(__file__).resolve().parent
 
-    # Clean up any existing buildarea directory in the script directory so the
+    # Clean up any existing buildarea directory in the buildarea parent directory so the
     # volume mount points at the expected location regardless of where the
     # command is launched from.
-    if (buildarea := script_dir / "buildarea").exists():
-        shutil.rmtree(buildarea)
-    buildarea.mkdir()
+    buildarea_parent = args.buildarea_parent.resolve()
+    if not (buildarea := buildarea_parent / "buildarea").exists():
+        # Create buildarea with world-readable and world-writable permissions (0o777).
+        buildarea.mkdir()
+        buildarea.chmod(0o777)
 
     # Find podman executable.
-    if (podman := shutil.which("podman")) is None:
+    if (runtime := shutil.which("podman")) is None:
         sys.exit("Error: podman not found in PATH")
 
     # Remove any existing image to avoid cached layers.
-    subprocess.run([podman, "rmi", "-f", "wasi-buildbot"], capture_output=True)
+    subprocess.run([runtime, "rmi", "-f", "wasi-buildbot"], capture_output=True)
 
     # Build the container, pulling the latest base image.
     subprocess.run(
         [
-            podman,
+            runtime,
             "build",
-            "--pull=always",
+            "--pull",
             "--no-cache",
             "-t",
             "wasi-buildbot",
@@ -76,23 +84,23 @@ def main() -> None:
     )
 
     # Prune dangling images and old base images.
-    subprocess.run([podman, "image", "prune", "-f"], capture_output=True)
+    subprocess.run([runtime, "image", "prune", "-f"], capture_output=True)
 
-    # Build the podman command.
+    # Build the container run command.
     cmd = [
-        podman,
+        runtime,
         "run",
         "--rm",
         "-it",
         "-v",
-        f"{buildarea}:/buildarea:Z",
+        f"{buildarea}:/buildarea",
         "--env-file",
         os.fsdecode(args.credentials.resolve()),
         "wasi-buildbot",
     ]
 
-    # Replace this process with podman.
-    os.execv(podman, cmd)
+    # Replace this process with the container runtime.
+    os.execv(runtime, cmd)
 
 
 if __name__ == "__main__":

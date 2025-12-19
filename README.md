@@ -23,16 +23,30 @@ Maintained by [@brettcannon](https://github.com/brettcannon) and [@Devid-Ba](htt
 
 ### Using the helper script (recommended)
 
-The `run.py` script builds the container fresh (pulling the latest base image) and runs it:
+The `run.py` script builds the container fresh (pulling the latest base image) and runs it with Podman.
+
+Basic usage:
 
 ```bash
 ./run.py
 ```
 
-Or with a custom credentials file path:
+With a custom credentials file path:
 
 ```bash
 ./run.py --credentials /path/to/credentials.env
+```
+
+With a custom parent directory for the buildarea:
+
+```bash
+./run.py --buildarea-parent /path/to/parent
+```
+
+All options can be combined:
+
+```bash
+./run.py --credentials /path/to/credentials.env --buildarea-parent /path/to/parent
 ```
 
 ### Manual execution
@@ -47,16 +61,16 @@ Run the container:
 
 ```bash
 podman run --rm -it \
-    -v /path/to/buildarea:/buildarea:Z \
+    -v /path/to/buildarea:/buildarea \
     --env-file credentials.env \
     wasi-buildbot
 ```
 
-Or with explicit environment variables:
+With explicit environment variables:
 
 ```bash
 podman run --rm -it \
-    -v /path/to/buildarea:/buildarea:Z \
+    -v /path/to/buildarea:/buildarea \
     -e BUILDBOT_USERNAME=xxx \
     -e BUILDBOT_PASSWORD=xxx \
     wasi-buildbot
