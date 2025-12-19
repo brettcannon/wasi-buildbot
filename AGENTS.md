@@ -89,7 +89,9 @@ Key files in this repository:
 3. **File Permissions:**
    - Credentials: mode 600 (owner read/write only)
    - Scripts: mode 755 (executable)
-   - Build area: mode 777 (world-writable on the host directory, required for container user access due to UID/GID mapping between host and container; this is safe because it's a dedicated build directory that's cleaned on each run)
+   - Build area: mode 777 (world-writable on the host directory)
+     - Required for container user access due to UID/GID mapping between host and container
+     - Safe because it's a dedicated build directory that's cleaned on each run
 
 ## Common Tasks and Guidance
 
@@ -121,7 +123,8 @@ When making changes:
 
 ## What NOT to Do
 
-- Don't switch from Podman to Docker (Podman is required for its rootless container capabilities, daemon-less architecture, and better security model with improved user namespace isolation)
+- Don't switch from Podman to Docker
+  - Podman is required for its rootless container capabilities, daemon-less architecture, and better security model with improved user namespace isolation
 - Don't commit credentials or sensitive information
 - Don't remove security checks from scripts
 - Don't change the base image without coordination with maintainers
