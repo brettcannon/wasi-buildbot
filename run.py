@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the WASI buildbot container with Podman or Docker.
+"""Run the WASI buildbot container with Podman.
 
 The credentials file should be in KEY=VALUE format:
 
@@ -39,11 +39,7 @@ def main() -> None:
         default=pathlib.Path.cwd(),
         help="Parent directory for buildarea/ (default: current working directory)",
     )
-    parser.add_argument(
-        "--container-runtime",
-        choices=["podman", "docker"],
-        help="Container runtime to use (default: auto-detect, preferring podman)",
-    )
+
     args = parser.parse_args()
 
     # Validate credentials file exists and has secure permissions.
@@ -63,22 +59,13 @@ def main() -> None:
     buildarea_parent = args.buildarea_parent.resolve()
     if (buildarea := buildarea_parent / "buildarea").exists():
         shutil.rmtree(buildarea)
-    buildarea.mkdir()
+    # Create buildarea with world-readable and world-writable permissions (0o777)
+    buildarea.mkdir(mode=0o777)
 
-    # Find container runtime executable.
-    if args.container_runtime:
-        runtime = shutil.which(args.container_runtime)
-        if runtime is None:
-            sys.exit(f"Error: {args.container_runtime} not found in PATH")
-        runtime_name = args.container_runtime
-    else:
-        # Auto-detect, preferring podman.
-        if (runtime := shutil.which("podman")) is not None:
-            runtime_name = "podman"
-        elif (runtime := shutil.which("docker")) is not None:
-            runtime_name = "docker"
-        else:
-            sys.exit("Error: neither podman nor docker found in PATH")
+    # Find podman executable.
+    runtime = shutil.which("podman")
+    if runtime is None:
+        sys.exit("Error: podman not found in PATH")
 
     # Remove any existing image to avoid cached layers.
     subprocess.run([runtime, "rmi", "-f", "wasi-buildbot"], capture_output=True)
@@ -106,20 +93,12 @@ def main() -> None:
         "run",
         "--rm",
         "-it",
-    ]
-    
-    # When using Podman, add --userns=keep-id so files written to the mounted
-    # volume are owned by the host user rather than a mapped subuid.
-    if runtime_name == "podman":
-        cmd.append("--userns=keep-id")
-    
-    cmd.extend([
         "-v",
         f"{buildarea}:/buildarea",
         "--env-file",
         os.fsdecode(args.credentials.resolve()),
         "wasi-buildbot",
-    ])
+    ]
 
     # Replace this process with the container runtime.
     os.execv(runtime, cmd)
