@@ -84,7 +84,7 @@ def main() -> None:
     )
 
     # Prune dangling images and old base images.
-    subprocess.run([runtime, "image", "prune", "-f"], capture_output=True)
+    subprocess.run([runtime, "image", "prune", "-a", "-f"], capture_output=True)
 
     # Build the container run command.
     cmd = [
