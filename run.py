@@ -66,8 +66,8 @@ def main() -> None:
     if (runtime := shutil.which("podman")) is None:
         sys.exit("Error: podman not found in PATH")
 
-    # Remove any existing image to avoid cached layers.
-    subprocess.run([runtime, "rmi", "-f", "wasi-buildbot"], capture_output=True)
+    # Remove any all images to free up space.
+    subprocess.run([runtime, "image", "rm", "--all", "-f"], capture_output=True)
 
     # Build the container, pulling the latest base image.
     subprocess.run(
